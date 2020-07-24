@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Grafika animacyjna</title>
+        
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: dimgray;
+            }
+
+            canvas {
+                border: 2px solid white;
+            }
+
+        </style>
+
+        <script type="text/javascript">
+            var canvas;
+            var ctx;
+            const tableWidth = 600;
+            const tableHeight = 400;
+
+            let flagMouse = 0;
+
+            const ballSize = 10;
+            let ballX = tableWidth / 2;
+            let ballY = tableHeight / 2;
+            let ballSpeedX = 2;
+            let ballSpeedY = 2;
+
+            const playerWidth = 10;
+            const playerHeight = 80;
+
+            let playerOneX = tableWidth / 16;
+            let playerOneY = (tableHeight / 2) - (playerHeight / 2);
+            let playerTwoX = tableWidth / 16 * 15;
+            let playerTwoY = (tableHeight / 2) - (playerHeight / 2);
+            
+            const winScore = 3;
+            let playerOneScore = 0;
+            let playerTwoScore = 0;
+
+            var animation;
+        
+
+            function main() {
+                canvas = document.getElementById('simpleCanvas');
+
+                if(canvas.getContext) {
+                    ctx = canvas.getContext('2d');
+
+                    animation = setInterval(game, 1000/60);
+
+                    document.body.onkeyup = function(e){
+                        if(e.keyCode == 32){
+                            flag = 0;
+                            animation = setInterval(game, 1000/60);
+
+                        }
+                    }
+    
+                }
+            
+            }
+
+            function restartGame(){
+                ballX = tableWidth / 2;
+                ballY = tableHeight / 2;
+                ballSpeedX = 2;
+                ballSpeedY = 2;
+
+                playerOneX = tableWidth / 16;
+                playerOneY = (tableHeight / 2) - (playerHeight / 2);
+                playerTwoX = tableWidth / 16 * 15;
+                playerTwoY = (tableHeight / 2) - (playerHeight / 2);
+
+                if(playerOneScore == winScore || playerTwoScore == winScore) {
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(0, 0, tableWidth, tableHeight);
+                    result();
+                    ctx.font = "normal 50px Arial";
+                    ctx.fillStyle = "white";
+                    if(playerOneScore == winScore) ctx.fillText("Player1 Won!", tableWidth / 2 - 145, tableHeight / 2);
+                    if(playerTwoScore == winScore) ctx.fillText("Player2 Won!", tableWidth / 2 - 145, tableHeight / 2);
+                    ctx.font = "normal 30px Arial";
+                    ctx.fillStyle = "white";
+                    ctx.fillText("Click space to continue", tableWidth / 2 - 155, tableHeight / 3 * 2);
+                    playerOneScore = 0;
+                    playerTwoScore = 0;
+                    clearInterval(animation);
+                    flagMouse = 1;
+                
+                }
+
+            }
+
+            function game() {
+                table();
+                result();
+                player1();
+                player2();
+                ball();
+                
+                rightPaddle();
+
+            }
+
+
+            function result() {
+                ctx.font = "normal bold 50px Arial";
+                ctx.fillStyle = "white";
+                ctx.fillText(playerOneScore, tableWidth / 2 - 50, 50);
+                ctx.fillText(playerTwoScore, tableWidth / 2 + 25, 50);
+            }
+
+            function rightPaddle() {
+                const middlePaddle = playerTwoY + playerHeight / 2;
+
+                if(ballX > tableWidth / 2) {
+                    if(middlePaddle - ballY > 200) {
+                        playerTwoY -= 30;
+                    } else if (middlePaddle - ballY > 50) {
+                        playerTwoY -= 15;
+                    } else if(middlePaddle - ballY < -200) {
+                        playerTwoY += 30;
+                    } else if (middlePaddle - ballY < -50) {
+                        playerTwoY += 15;
+                    }
+                }
+
+                if(ballX <= tableWidth / 2 && ballX > 100) {
+                    if(middlePaddle - ballY > 100) {
+                        playerTwoY -= 5;
+                    } 
+
+                    if(middlePaddle - ballY < -100) {
+                        playerTwoY += 5;
+                    }
+                }
+
+                if(playerTwoY <= 0) {
+                    playerTwoY = 0;
+                }
+
+                if(playerTwoY >= tableHeight - playerHeight) {
+                    playerTwoY = tableHeight - playerHeight;
+                }
+            }
+
+            function playerPosition(event) {
+                playerOneY = event.clientY - canvas.offsetTop;
+
+                if(playerOneY <= 0) {
+                    playerOneY = 0;
+                }
+
+                if(playerOneY >= tableHeight - playerHeight) {
+                    playerOneY = tableHeight - playerHeight;
+                }
+
+                if(flagMouse == 0) player1();
+            }
+
+            function table() {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, tableWidth, tableHeight);
+                
+                for (let linePosition = 10; linePosition < tableHeight; linePosition += 15) {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(tableWidth / 2 - 1, linePosition, 2, 5);
+                }
+                
+            }
+
+            function speedUp() {
+                if(ballSpeedX > 0 && ballSpeedX < 10) {
+                    ballSpeedX += 0.3;
+                } else if(ballSpeedX < 0 && ballSpeedX < -10) {
+                    ballSpeedX -= 0.3;
+                }
+
+                if(ballSpeedY > 0 && ballSpeedY < 10) {
+                    ballSpeedY += 0.3;
+                } else if(ballSpeedY < 0 && ballSpeedY < -10) {
+                    ballSpeedY -= 0.3;
+                }
+            }
+
+            function ball() {
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fill();
+
+                ballX += ballSpeedX;
+                ballY += ballSpeedY;
+
+                if (ballX <= ballSize) {
+                    playerTwoScore += 1;
+                    restartGame();
+                }
+
+                if (ballX >= tableWidth - ballSize) {
+                    playerOneScore += 1;
+                    restartGame();
+                }
+
+                if (ballY <= ballSize || ballY >= tableHeight - ballSize) {
+                    ballSpeedY = -ballSpeedY;
+                    speedUp();
+                }
+
+                if (ballX <= playerOneX + playerWidth * 2 && ballY >= playerOneY && ballY <= playerOneY + playerHeight){
+                    ballSpeedX = -ballSpeedX;
+                    speedUp();
+                }
+
+                if (ballX >= playerTwoX - playerWidth  && ballY >= playerTwoY && ballY <= playerTwoY + playerHeight){
+                    ballSpeedX = -ballSpeedX;
+                    speedUp();
+                }
+            }
+
+            function player1() {
+                ctx.fillStyle = 'orange';
+                ctx.fillRect(playerOneX, playerOneY, playerWidth, playerHeight);
+            }
+
+            function player2() {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(playerTwoX, playerTwoY, playerWidth, playerHeight);
+            }
+
+
+
+        </script>
+    </head>
+    <body onload = "main();" onmousemove="playerPosition(event)">
+        <canvas id = "simpleCanvas" width="600" height="400">
+            
+        </canvas><br>
+    </body>
+</html>
+
+
